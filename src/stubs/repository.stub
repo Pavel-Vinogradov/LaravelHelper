@@ -1,0 +1,11 @@
+<?php
+
+namespace {{ namespace }};
+
+use Palax\LaravelHelpers\Helpers\Repositories;
+
+final class {{ class }} extends BaseRepository
+{
+
+
+}

@@ -1,0 +1,10 @@
+<?php
+use Illuminate\Support\Facades\Route;
+
+Route::group(['prefix' => '{{ RoutePrefix }}', 'middleware' => []], function () {
+    Route::post('/index', '{{ Class }}@index')->name('api.{{ RoutePrefix }}.index');
+    Route::post('/create', '{{ Class }}@store')->name('api.{{ RoutePrefix }}.store');
+    Route::get('/single/{id}', '{{ Class }}@show')->name('api.{{ RoutePrefix }}.read');
+    Route::put('/single/{id}', '{{ Class }}@update')->name('api.{{ RoutePrefix }}.update');
+    Route::delete('/single/{id}', '{{ Class }}@destroy')->name('api.{{ RoutePrefix }}.delete');
+});

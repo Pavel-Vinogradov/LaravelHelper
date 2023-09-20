@@ -1,0 +1,45 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ rootNamespace }}Http\Controllers\Controller;
+use {{ FullServiceClass }};
+
+final class {{ class }} extends Controller
+{
+
+
+    public function __construct(
+     {{ ServiceClass }} ${{ ServiceClass }}
+    ){
+    }
+
+    public function index({{ indexRequest }} $request)
+    {
+        //
+    }
+
+
+    public function store({{ storeRequest }} $request)
+    {
+        //
+    }
+
+
+    public function show($id)
+    {
+        //
+    }
+
+
+    public function update({{ updateRequest }} $request ,$id)
+    {
+        //
+    }
+
+
+    public function destroy($id)
+    {
+        //
+    }
+}

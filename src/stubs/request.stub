@@ -1,0 +1,16 @@
+<?php
+
+namespace {{ namespace }};
+
+use Palax\LaravelHelpers\Helpers\Request\BaseRequest;
+
+final class {{ class }} extends BaseRequest
+{
+
+    public function rules(): array
+    {
+        return [
+            //
+        ];
+    }
+}
