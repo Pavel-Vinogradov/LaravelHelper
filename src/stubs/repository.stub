@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 
-use Palax\LaravelHelpers\Helpers\Repositories;
+use Tizix\LaravelHelpers\Helpers\Repositories\Eloquent\BaseRepository;
 
 final class {{ class }} extends BaseRepository
 {

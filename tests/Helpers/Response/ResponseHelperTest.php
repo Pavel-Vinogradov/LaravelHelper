@@ -1,16 +1,18 @@
 <?php
 
-namespace Palax\LaravelHelpers\Tests\Helpers\Response;
+declare(strict_types=1);
+
+namespace Tizix\LaravelHelpers\Tests\Helpers\Response;
 
 use Illuminate\Http\JsonResponse;
 use Orchestra\Testbench\TestCase;
-use Palax\LaravelHelpers\Helpers\Response\ResponseHelper;
 use stdClass;
 use Symfony\Component\HttpFoundation\Response;
+use Tizix\LaravelHelpers\Helpers\Response\ResponseHelper;
 
-class ResponseHelperTest extends TestCase
+final class ResponseHelperTest extends TestCase
 {
-    public function testSuccessResponse()
+    public function testSuccessResponse(): void
     {
         $data = ['message' => 'Success'];
         $response = ResponseHelper::success($data);
@@ -19,7 +21,7 @@ class ResponseHelperTest extends TestCase
         $this->assertEquals(json_encode(['status' => true, 'errors' => new stdClass(), 'data' => (object) $data]), $response->getContent());
     }
 
-    public function testNotFoundResponse()
+    public function testNotFoundResponse(): void
     {
         $response = ResponseHelper::notFound();
         $this->assertInstanceOf(JsonResponse::class, $response);
@@ -27,7 +29,7 @@ class ResponseHelperTest extends TestCase
         $this->assertEquals(json_encode(['status' => false, 'errors' => new stdClass(), 'data' => new stdClass()]), $response->getContent());
     }
 
-    public function testNotAuthorizeResponse()
+    public function testNotAuthorizeResponse(): void
     {
         $response = ResponseHelper::notAuthorize();
         $this->assertInstanceOf(JsonResponse::class, $response);
@@ -35,7 +37,7 @@ class ResponseHelperTest extends TestCase
         $this->assertEquals(json_encode(['status' => false, 'errors' => new stdClass(), 'data' => new stdClass()]), $response->getContent());
     }
 
-    public function testBadRequestResponse()
+    public function testBadRequestResponse(): void
     {
         $errors = ['field' => 'Error message'];
         $response = ResponseHelper::badRequest($errors);

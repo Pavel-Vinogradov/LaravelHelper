@@ -1,13 +1,15 @@
 <?php
 
-namespace Palax\LaravelHelpers\Tests\Request;
+declare(strict_types=1);
+
+namespace Tizix\LaravelHelpers\Tests\Request;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Orchestra\Testbench\TestCase;
-use Palax\LaravelHelpers\Helpers\Request\BaseRequest;
+use Tizix\LaravelHelpers\Helpers\Request\BaseRequest;
 
-class TestRequest extends BaseRequest
+final class TestRequest extends BaseRequest
 {
     public function rules(): array
     {
@@ -17,16 +19,16 @@ class TestRequest extends BaseRequest
         ];
     }
 }
-class BaseRequestTest extends TestCase
+final class BaseRequestTest extends TestCase
 {
-    public function testAuthorize()
+    public function testAuthorize(): void
     {
         $request = new TestRequest();
 
         $this->assertTrue($request->authorize());
     }
 
-    public function testRules()
+    public function testRules(): void
     {
         $request = new TestRequest();
 

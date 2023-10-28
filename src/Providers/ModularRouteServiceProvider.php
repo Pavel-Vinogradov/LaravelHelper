@@ -1,18 +1,26 @@
 <?php
 
-namespace Palax\LaravelHelpers\Providers;
+declare(strict_types=1);
+
+namespace Tizix\LaravelHelpers\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Tizix\LaravelHelpers\Console\Commands\MakeModuleCommand;
 
 final class ModularRouteServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->publishes([
-            __DIR__.'/../../config/modular.php' => config_path('modular.php'),
-        ]);
+            __DIR__ . '/../../config/modular.php' => config_path('modular.php'),
+        ], 'config');
 
+        $this->commands(
+            [
+                MakeModuleCommand::class,
+            ]
+        );
     }
 
     public function boot(): void
@@ -23,14 +31,14 @@ final class ModularRouteServiceProvider extends ServiceProvider
         if ($modules) {
             Route::group([
                 'prefix' => '',
-            ], function () use ($modules, $path) {
+            ], function () use ($modules, $path): void {
                 foreach ($modules as $mod => $submodules) {
                     foreach ($submodules as $key => $sub) {
-                        $relativePath = "/$mod/$sub";
+                        $relativePath = "/{$mod}/{$sub}";
 
                         Route::prefix('api')
                             ->middleware('api')
-                            ->group(function () use ($mod, $sub, $relativePath, $path) {
+                            ->group(function () use ($mod, $sub, $relativePath, $path): void {
                                 $this->getApiRoutes($mod, $sub, $relativePath, $path);
                             });
                     }
@@ -41,15 +49,15 @@ final class ModularRouteServiceProvider extends ServiceProvider
 
     private function getApiRoutes(string $mod, string $sub, string $relativePath, string $path): void
     {
-        $routesPath = $path.$relativePath.'/Routes/api.php';
+        $routesPath = $path . $relativePath . '/Routes/api.php';
         if (file_exists($routesPath)) {
             Route::group(
                 [
-                    'prefix' => strtolower($mod),
+                    'prefix' => mb_strtolower($mod),
                     'middleware' => $this->getMiddleware($mod, 'api'),
                 ],
-                function () use ($mod, $sub, $routesPath) {
-                    Route::namespace("App\Modules\\$mod\\$sub\Controllers")->
+                function () use ($mod, $sub, $routesPath): void {
+                    Route::namespace("App\Modules\\{$mod}\\{$sub}\Controllers")->
                     group($routesPath);
                 }
             );

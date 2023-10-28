@@ -2,37 +2,45 @@
 
 Пакет предоставляет набор компонентов постоянно необходимых в работе и упрощающих разработку
 
-#### Palax\LaravelHelpers\Helpers\\*
+#### Tizix\LaravelHelpers\Helpers\\*
 
 - `BaseRepository` - Базовый класс для Репозитория в при использовании  Repository-Service pattern
 - `BaseRequest` - Базовый класс Request
 - `ResponseHelper` - класс, ответа 
 
+1. Для работы сервиса в системе, требуется его подключить в `config/app.php`
+```php
+'providers' => [
+    // ...
+    Tizix\LaravelHelpers\Providers\ModularRouteServiceProvider::class,
+]
 
-1. Публикация пакета выполняется через консольную команду
+```
+2. Публикация пакета выполняется через консольную команду
 
 ```shell script
-php artisan vendor:publish --provider="Palax\LaravelHelpers\Providers\ModularRouteServiceProvider"
+php artisan vendor:publish --provider="Tizix\LaravelHelpers\Providers\ModularRouteServiceProvider"
 ```
-2. В Папке config публикуется конфиг `modular.php`
+3. В Папке config публикуется конфиг `modular.php`
 ```php
 <?php
 
 return [
-    'path' => base_path().'/app/Modules',
-    'base_namespace' => 'App\Modules',
+    'path' => base_path().'/app/Modules',// Корневая папка модуля
+    'base_namespace' => 'App\Modules', // Корневая папка модуля
     'groupWithoutPrefix' => 'Pub',
     'groupMiddleware' => [
 
-    ],
+    ], // тут можно регистрировать Middleware
     'modules' => [
         'Admin' => [], // Название модуля Admin для авторизированных пользователь 
         'Pub' => [],  // Название модуля Pub для 
     ],
 ];
-
 ```
-3. Создание нового модуля выполняется через консольную команду виды команд `--controller --model --migration  --service --repository --request`
+
+
+4. Создание нового модуля выполняется через консольную команду виды команд `--controller --model --migration  --service --repository --request`
 ```shell script
 php artisan make:module  Admin/User --all 
 ```

@@ -1,6 +1,8 @@
 <?php
 
-namespace Palax\LaravelHelpers\Helpers\Request;
+declare(strict_types=1);
+
+namespace Tizix\LaravelHelpers\Helpers\Request;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -20,12 +22,21 @@ abstract class BaseRequest extends FormRequest
     protected function failedValidation(Validator $validator): void
     {
         $errors = (new ValidationException($validator))->errors();
+        $firstErrorKey = array_key_first($errors);
+        $firstErrorMessage = $errors[$firstErrorKey][0] ?? '';
 
         throw new HttpResponseException(
             response()->json([
                 'status' => false,
-                'errors' => $errors,
+                'errors' => [
+                    [
+                        'type' => 'validation',
+                        'message' => $firstErrorMessage,
+                        'attribute' => $firstErrorKey,
+                    ]
+                ],
             ], Response::HTTP_UNPROCESSABLE_ENTITY)
         );
+
     }
 }

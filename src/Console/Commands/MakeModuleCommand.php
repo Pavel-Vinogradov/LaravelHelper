@@ -1,6 +1,8 @@
 <?php
 
-namespace Palax\LaravelHelpers\Console\Commands;
+declare(strict_types=1);
+
+namespace Tizix\LaravelHelpers\Console\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
@@ -42,7 +44,6 @@ final class MakeModuleCommand extends Command
             $this->input->setOption('repository', true);
             $this->input->setOption('request', true);
         }
-        $modelName = Str::singular(Str::studly(class_basename($this->argument('name'))));
         if ($this->option('controller')) {
             $this->createController();
         }
@@ -52,12 +53,11 @@ final class MakeModuleCommand extends Command
         }
 
         if ($this->option('service')) {
-            $serviceName = "{$modelName}Service";
-            $this->createServiceClass($serviceName);
+            $this->createServiceClass();
         }
 
         if ($this->option('request')) {
-            $this->createRequestClasses($modelName);
+            $this->createRequestClasses();
         }
 
         if ($this->option('migration')) {
@@ -73,12 +73,12 @@ final class MakeModuleCommand extends Command
         $model = Str::singular(Str::studly(class_basename($this->argument('name'))));
         if ($this->confirm('Создать модель с миграцией ? ', true)) {
             $this->call('make:model', [
-                'name' => 'App\\Modules\\'.trim($this->argument('name')).'\\Models\\'.$model,
+                'name' => 'App\\Modules\\' . trim($this->argument('name')) . '\\Models\\' . $model,
                 '--migration' => true,
             ]);
         } else {
             $this->call('make:model', [
-                'name' => 'App\\Modules\\'.trim($this->argument('name')).'\\Models\\'.$model,
+                'name' => 'App\\Modules\\' . trim($this->argument('name')) . '\\Models\\' . $model,
             ]);
         }
     }
@@ -93,14 +93,13 @@ final class MakeModuleCommand extends Command
         $modelName = Str::singular(Str::studly(class_basename($this->argument('name'))));
         $path = $this->getApiControllerPath($this->argument('name'));
 
-        $serviceName = $controller;
         if ($this->alreadyExists($path)) {
             $this->error("{$controller}Controller already exists.");
         } else {
             $this->makeDirectory($path);
             $stub = null;
             try {
-                $stub = $this->files->get(base_path('stubs/controller.model.api.stub'));
+                $stub = $this->files->get(__DIR__ . '/../../stubs/controller.model.api.stub');
             } catch (FileNotFoundException $e) {
                 $this->error($e->getMessage());
             }
@@ -117,14 +116,14 @@ final class MakeModuleCommand extends Command
                     '{{ updateRequest }}',
                 ],
                 [
-                    'App\\Modules\\'.str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')).'\\Controllers\\Api',
+                    'App\\Modules\\' . str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')) . '\\Controllers\\Api',
                     $this->laravel->getNamespace(),
-                    $controller.'Controller',
-                    $serviceName.'Service',
-                    'App\\Modules\\'.str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name'))."\\Services\\$serviceName".'Service',
-                    $serviceName.'IndexRequest',
-                    $serviceName.'StoreRequest',
-                    $serviceName.'UpdateRequest',
+                    $controller . 'Controller',
+                    $controller . 'Service',
+                    'App\\Modules\\' . str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')) . "\\Services\\{$controller}" . 'Service',
+                    $controller . 'IndexRequest',
+                    $controller . 'StoreRequest',
+                    $controller . 'UpdateRequest',
                 ],
                 $stub
             );
@@ -134,8 +133,6 @@ final class MakeModuleCommand extends Command
         }
         $this->updateModularConfig();
         $this->createApiRoutes($controller, $modelName);
-        $this->createRequestClasses($serviceName);
-        $this->createServiceClass($serviceName);
     }
 
     private function createMigration(): void
@@ -146,7 +143,6 @@ final class MakeModuleCommand extends Command
             $this->call('make:migration', [
                 'name' => "create_{$table}_table",
                 '--create' => $table,
-                '--path' => 'App\\Modules\\'.trim($this->argument('name')).'\\Migrations',
             ]);
         } catch (Exception $e) {
             $this->error($e->getMessage());
@@ -163,7 +159,7 @@ final class MakeModuleCommand extends Command
             $this->makeDirectory($routePath);
             $stub = null;
             try {
-                $stub = $this->files->get(base_path('stubs/routes.api.stub'));
+                $stub = $this->files->get(__DIR__ . '/../../stubs/routes.api.stub');
             } catch (FileNotFoundException $e) {
                 $this->error($e->getMessage());
             }
@@ -176,10 +172,10 @@ final class MakeModuleCommand extends Command
                     '{{ model }}',
                 ],
                 [
-                    'Api\\'.$controller.'Controller',
+                    'Api\\' . $controller . 'Controller',
                     Str::singular(Str::snake(lcfirst($modelName), '-')),
                     '{id}',
-                    '{'.$modelName.'}',
+                    '{' . $modelName . '}',
 
                 ],
                 $stub
@@ -194,7 +190,7 @@ final class MakeModuleCommand extends Command
     {
         $controller = Str::studly(class_basename($argument));
 
-        return $this->laravel['path'].'/Modules/'.str_replace('\\', DIRECTORY_SEPARATOR, $argument).'/Controllers/Api/'."{$controller}Controller.php";
+        return $this->laravel['path'] . '/Modules/' . str_replace('\\', DIRECTORY_SEPARATOR, $argument) . '/Controllers/Api/' . "{$controller}Controller.php";
     }
 
     private function alreadyExists(string $path): bool
@@ -211,7 +207,7 @@ final class MakeModuleCommand extends Command
 
     private function getApiRoutesPath(string $argument): string
     {
-        return $this->laravel['path'].'/Modules/'.str_replace('\\', DIRECTORY_SEPARATOR, $argument).'/Routes/api.php';
+        return $this->laravel['path'] . '/Modules/' . str_replace('\\', DIRECTORY_SEPARATOR, $argument) . '/Routes/api.php';
     }
 
     /**
@@ -228,32 +224,34 @@ final class MakeModuleCommand extends Command
         $pattern = "/'modules' => \[.*?'{$group}' => \[(.*?)]/s";
         preg_match($pattern, $modular, $matches);
 
-        if (count($matches) == 2) {
+        if (2 === count($matches)) {
             if (! preg_match("/'{$module}'/", $matches[1])) {
                 $pattern = "/('modules' => \[.*?'{$group}' => \[)/s";
                 $parts = preg_split($pattern, $modular, 2, PREG_SPLIT_DELIM_CAPTURE);
-                if (count($parts) == 3) {
-                    $configStr = $parts[0].$parts[1]."\n            '$module',".$parts[2];
+                if (3 === count($parts)) {
+                    $configStr = $parts[0] . $parts[1] . "\n            '{$module}'," . $parts[2];
                     $this->files->put(base_path('config/modular.php'), $configStr);
                 }
             }
         }
     }
 
-    private function createRequestClasses(string $modelName): void
+    private function createRequestClasses(): void
     {
+        $modelName = Str::studly(class_basename($this->argument('name')));
+
         $requestTypes = ['Index', 'Store', 'Update'];
 
         foreach ($requestTypes as $requestType) {
             $requestClassName = "{$modelName}{$requestType}Request";
-            $requestPath = $this->laravel['path'].'/Modules/'.str_replace('\\', DIRECTORY_SEPARATOR, $this->argument('name'))."/Requests/{$requestClassName}.php";
+            $requestPath = $this->laravel['path'] . '/Modules/' . str_replace('\\', DIRECTORY_SEPARATOR, $this->argument('name')) . "/Requests/{$requestClassName}.php";
 
             if (! $this->alreadyExists($requestPath)) {
                 $this->makeDirectory($requestPath);
 
                 $stub = null;
                 try {
-                    $stub = $this->files->get(base_path('stubs/request.stub'));
+                    $stub = $this->files->get(__DIR__ . '/../../stubs/request.stub');
                 } catch (FileNotFoundException $e) {
                     $this->error($e->getMessage());
                 }
@@ -264,7 +262,7 @@ final class MakeModuleCommand extends Command
                         '{{ class }}',
                     ],
                     [
-                        'App\\Modules\\'.str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')).'\\Requests',
+                        'App\\Modules\\' . str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')) . '\\Requests',
                         $requestClassName,
                     ],
                     $stub
@@ -278,17 +276,19 @@ final class MakeModuleCommand extends Command
         }
     }
 
-    private function createServiceClass(string $modelName): void
+    private function createServiceClass(): void
     {
+        $modelName = Str::studly(class_basename($this->argument('name')));
+
         $serviceClassName = "{$modelName}Service";
-        $servicePath = $this->laravel['path'].'/Modules/'.str_replace('\\', DIRECTORY_SEPARATOR, $this->argument('name'))."/Services/{$serviceClassName}.php";
+        $servicePath = $this->laravel['path'] . '/Modules/' . str_replace('\\', DIRECTORY_SEPARATOR, $this->argument('name')) . "/Services/{$serviceClassName}.php";
 
         if (! $this->alreadyExists($servicePath)) {
             $this->makeDirectory($servicePath);
 
             $stub = null;
             try {
-                $stub = $this->files->get(base_path('stubs/serviceClass.stub'));
+                $stub = $this->files->get(__DIR__ . '/../../stubs/serviceClass.stub');
             } catch (FileNotFoundException $e) {
                 $this->error($e->getMessage());
             }
@@ -299,7 +299,7 @@ final class MakeModuleCommand extends Command
                     '{{ class }}',
                 ],
                 [
-                    'App\\Modules\\'.str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')).'\\Services',
+                    'App\\Modules\\' . str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')) . '\\Services',
                     $serviceClassName,
                 ],
                 $stub
@@ -317,14 +317,14 @@ final class MakeModuleCommand extends Command
         $repository = Str::singular(Str::studly(class_basename($this->argument('name'))));
         $repositoryClassName = "{$repository}Repository";
 
-        $path = $this->laravel['path'].'/Modules/'.str_replace('\\', DIRECTORY_SEPARATOR, $this->argument('name'))."/Repository/{$repositoryClassName}.php";
+        $path = $this->laravel['path'] . '/Modules/' . str_replace('\\', DIRECTORY_SEPARATOR, $this->argument('name')) . "/Repository/{$repositoryClassName}.php";
 
         if (! $this->alreadyExists($path)) {
             $this->makeDirectory($path);
 
             $stub = null;
             try {
-                $stub = $this->files->get(base_path('stubs/repository.stub'));
+                $stub = $this->files->get(__DIR__ . '/../../stubs/repository.stub');
             } catch (FileNotFoundException $e) {
                 $this->error($e->getMessage());
             }
@@ -335,7 +335,7 @@ final class MakeModuleCommand extends Command
                     '{{ class }}',
                 ],
                 [
-                    'App\\Modules\\'.str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')).'\\Repository',
+                    'App\\Modules\\' . str_replace('/', DIRECTORY_SEPARATOR, $this->argument('name')) . '\\Repository',
                     $repositoryClassName,
                 ],
                 $stub
