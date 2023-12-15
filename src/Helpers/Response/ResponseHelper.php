@@ -14,7 +14,7 @@ final class ResponseHelper
         return [
             'status' => $status,
             'errors' => $errors,
-            'data' => (object)$data,
+            'data' => $data,
         ];
     }
 
