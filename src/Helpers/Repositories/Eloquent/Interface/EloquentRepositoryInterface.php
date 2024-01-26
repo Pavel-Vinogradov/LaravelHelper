@@ -11,11 +11,11 @@ interface EloquentRepositoryInterface
 {
     public function findById(int $modelId): ?Model;
 
-    public function create(array $attributes): Model;
+    public function create(array $attributes): ?Model;
 
-    public function update(Model $model, array $attributes): Model;
+    public function update(int $modelId, array $attributes): ?Model;
 
-    public function delete(Model $model): bool;
+    public function deleteById(int $modelId): bool;
 
     public function getAll(array $columns = ['*'], array $relations = []): Collection;
 }

@@ -23,14 +23,21 @@ abstract class BaseRepository implements EloquentRepositoryInterface
         return $this->query()->find($modelId);
     }
 
-    public function create(array $attributes): Model
+
+    public function create(array $attributes): ?Model
     {
         return $this->query()->create($attributes);
     }
 
-    public function update(Model $model, array $attributes): Model
+    public function update(int $modelId, array $attributes): ?Model
     {
+        $model = $this->findById($modelId);
+
+        if (!$model) {
+            return null;
+        }
         $model->update($attributes);
+        $model->save();
         return $model;
     }
 
@@ -39,8 +46,12 @@ abstract class BaseRepository implements EloquentRepositoryInterface
         return $this->query()->with($relations)->get($columns);
     }
 
-    public function delete(Model $model): bool
+    public function deleteById(int $modelId): bool
     {
+        $model = $this->findById($modelId);
+        if (!$model) {
+            return false;
+        }
         return $model->delete();
     }
 
@@ -48,4 +59,5 @@ abstract class BaseRepository implements EloquentRepositoryInterface
     {
         return $this->model->query();
     }
+
 }
